@@ -1,0 +1,147 @@
+.incrementAndSwap:
+	add r8, r8, 4            @ incrementing r8 when pivot is greater than arr[j]
+	ld r10, [r8]             @ swap arr[i] and arr[j] --> swapping the values in memory locations (ie swap between r8 and r9 mm locations)
+	ld r11, [r9]
+	st r11, [r8]
+	st r10, [r9]
+	add r9, r9, 4            @ incrementing value of j in for loop
+	b .for_loop
+			2
+
+.checkCond1:
+	ld r10, [r9]              @ loading arr[j] in r10
+	ld r11, [r7]              @ loading pivot value in r11
+	cmp r11, r10              @ Comparing r10 with r11  (ie. comparing pivot and arr[j])
+	bgt .incrementAndSwap     @ if pivot is greater than arr[j] then first increment i and then swap the values of arr[i] and arr[j]
+	add r9, r9, 4
+	b .for_loop
+	
+.quicksort:
+		@ ADD YOUR CODE HERE
+	
+	cmp r3, r2                   @ Comparing l[r2] and r[r3] inside quicksort function
+	bgt .callPartition           @ if l < r then jump to partition function
+	ret
+	
+	.callPartition:
+		sub sp, sp, 4
+		st ra, [sp]
+		call .partition     @ calling the partition function
+		ld ra, [sp]
+		add sp, sp, 4
+		
+             @ updating the value of r[r3] from (pivot-1)
+	sub sp, sp, 16 
+	st r7, [sp]
+	st r2, 4[sp]
+	st r3, 8[sp]                @ store all left and right pointers of subarray
+	st ra, 12[sp]
+	sub r10, r7, 4           
+	mov r3, r10 
+	call .quicksort              @ then call quicksort for lrft subarray
+	ld ra, 12[sp]
+	ld r3, 8[sp]
+	ld r2, 4[sp]                @ load all left and right pionters of subarray
+	ld r7, [sp]
+	add sp, sp, 16
+	
+		                            @ updating the value of l[r2] from (pivot+1)
+	sub sp, sp, 16
+	st r7, [sp]
+	st r2, 4[sp]
+	st r3, 8[sp]
+	st ra, 12[sp]
+	add r10, r7, 4
+	mov r2, r10 
+	call .quicksort              @ then call quick sort function for right subarray
+	ld ra, 12[sp]
+	ld r3, 8[sp]
+	ld r2, 4[sp]
+	ld r7, [sp]
+	add sp, sp, 16
+		
+ret                          @ direct return to main function
+		
+
+	@ we have to update r3 and r2 at the end of this quicksort so that partition can get updated values
+
+
+.partition: 	
+		@ ADD YOUR CODE HERE
+	mov r5, r2                @ l stored in r5 
+	mov r6, r3                @ r stored in r6 (for 5 elements r3 contains 5*4 = 20)
+	mov r7, r3                @ pivot stored in r7
+	sub r8, r2, 4             @ i is stored in r8 (initially -4)
+	mov r9, r2                @ j is stored in r9
+	.for_loop: 
+		cmp r6, r9                @ comparing j with l (for for loop from l[r5] to r[r6] with j[r9] as variable)
+		bgt .checkCond1
+		add r8, r8, 4             @incrementing the value of i after the loop. This value is going to be the pivot.
+		ld r10, [r7]              @ placing the pivot element to its exact position by swapping values at m/m location (i+1)(r8) and pivot (r7).
+		ld r11, [r8]
+		st r10, [r8]              @ here j+1 implies that all elements below j are less than pivot hence j+1 is the perfect position forpivot.  
+		st r11, [r7]
+		mov r7, r8
+		ret
+
+
+
+.main:
+
+	@ Loading the values as an array into the registers
+	mov r0, 0    
+	mov r1, -48	@ replace 12 with the number to be sorted
+	st r1, 0[r0]	
+	mov r1, -47	@ replace 7 with the number to be sorted
+	st r1, 4[r0]
+	mov r1, -46      @ replace 11 with the number to be sorted
+	st r1, 8[r0]
+	mov r1, -45       @ replace 9 with the number to be sorted
+	st r1, 12[r0]
+	mov r1, -44       @ replace 3 with the number to be sorted
+	st r1, 16[r0]
+	mov r1, -43      @ replace 15 with the number to be sorted
+	st r1, 20[r0]
+	mov r1, -42
+	st r1, 24[r0]
+	mov r1, -41
+	st r1, 28[r0]
+	mov r1, -40
+	st r1, 32[r0]
+	mov r1, -39
+	st r1, 36[r0]
+	mov r1, -38
+	st r1, 40[r0]
+	
+	
+	@ EXTEND ON SIMILAR LINES FOR MORE NUMBERS
+
+	mov r2, 0       @ Starting address of the array
+	
+	@ Retreive the end address of the array
+	mov r3, 10	@ REPLACE 5 WITH N-1, where, N is the number of numbers being sorted
+	mul r3, r3, 4		
+	add r4, r2, r3
+
+
+		@ ADD YOUR CODE HERE 
+		
+	sub sp, sp, 4
+	st ra, [sp] 
+	call .quicksort
+	ld ra, [sp]
+	add sp, sp, 4
+	
+
+	@ ADD YOUR CODE HERE 
+
+	@ Print statements for the result
+        mov r3, 10     @ REPLACE 5 WITH N-1, where, N is the number of numbers being sorted 
+        mov r2, 0      @ Starting address of the array
+        .printLoop:
+           ld r1, 0[r2]
+           .print r1
+           add r2,r2,4  @ Incrementing address value
+           cmp r3, 0    @ r3 contains number of elements in array
+           sub r3,r3,1  
+	   bgt .printLoop

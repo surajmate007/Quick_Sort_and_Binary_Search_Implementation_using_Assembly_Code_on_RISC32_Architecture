@@ -1,0 +1,225 @@
+.Sorting:
+
+	.quicksort:
+		b .baseCase
+
+	.baseCase:
+		cmp r3, r2                  @ Comparing l[r2] and r[r3] inside quicksort function
+		bgt .setPartitionValues     @ if l < r then jump to partition function
+		ret
+	
+	.recursive:
+		
+             
+		sub sp, sp, 16 
+		st r7, [sp]
+		st r2, 4[sp]
+		st r3, 8[sp]                @ store all left and right pointers of subarray
+		st ra, 12[sp]
+		sub r10, r7, 4           
+		mov r3, r10                 @ updating the value of r[r3] to (pivot-1)
+		call .quicksort             @ then call quicksort for lrft subarray
+		ld ra, 12[sp]
+		ld r3, 8[sp]
+		ld r2, 4[sp]                @ load all left and right pionters of subarray
+		ld r7, [sp]
+		add sp, sp, 16
+	
+	
+		                            
+		sub sp, sp, 16
+		st r7, [sp]
+		st r2, 4[sp]
+		st r3, 8[sp]
+		st ra, 12[sp]
+		add r10, r7, 4               @ updating the value of l[r2] to (pivot+1)
+		mov r2, r10 
+		call .quicksort              @ then call quick sort function for right subarray
+		ld ra, 12[sp]
+		ld r3, 8[sp]
+		ld r2, 4[sp]
+		ld r7, [sp]
+		add sp, sp, 16
+		
+ret                                               @ return to the binary search function
+
+.partition: 	
+		@ ADD YOUR CODE HERE
+
+	mov r7, r8
+	b .recursive
+
+
+	.incrementAndSwap:
+	add r8, r8, 4            @ incrementing r8 when pivot is greater than arr[j]
+	ld r10, [r8]             @ swap arr[i] and arr[j] --> swapping the values in memory locations (ie swap between r8 and r9 mm locations)
+	ld r11, [r9]
+	st r11, [r8]
+	st r10, [r9]
+	add r9, r9, 4            @ incrementing value of j in for loop
+	b .for_loop
+			
+
+.checkCond1:
+	ld r10, [r9]              @ loading arr[j] in r10
+	ld r11, [r7]              @ loading pivot value in r11
+	cmp r11, r10              @ Comparing r10 with r11  (ie. comparing pivot and arr[j])
+	bgt .incrementAndSwap     @ if pivot is greater than arr[j] then first increment i and then swap the values of arr[i] and arr[j]
+	add r9, r9, 4
+	b .for_loop
+	
+
+
+.setPartitionValues:
+	mov r5, r2                @ l stored in r5 
+	mov r6, r3                @ r stored in r6 (for 5 elements r3 contains 5*4 = 20)
+	mov r7, r3                @ pivot stored in r7
+	sub r8, r2, 4             @ i is stored in r8 (initially -4)
+	mov r9, r2                @ j is stored in r9
+	.for_loop: 
+		cmp r6, r9                    @ comparing j with r (for for loop from l[r5] to r[r6] with j[r9] as variable)(int j=l; j<r; j++)
+		bgt .checkCond1
+		add r8, r8, 4
+		ld r10, [r7]                  @ placing the pivot element to its exact position by swapping values at m/m location (i+1)(r8) and pivot (r7).
+		ld r11, [r8]
+		st r10, [r8]    	          @ here j+1 implies that all elements below j are less than pivot hence j+1 is the perfect position forpivot.  
+		st r11, [r7]
+		b .partition
+
+
+
+.binarysearch:
+		@ ADD YOUR CODE HERE	
+	
+	sub sp, sp, 20
+	st r0, [sp]
+	st r1, 4[sp]       @ storing all values required for binary search and preparing for quick sort
+	st r2, 8[sp]
+	st r3, 12[sp]
+	st ra, 16[sp]
+
+	sub r3, r3, 1
+	mul r3, r3, 4      @ setting the values required for quick sort (only r2 and r3 are required)
+	mov r2, 0
+
+	call .Sorting      @ storing all the values required for binary search in m/m 
+
+	ld ra, 16[sp]      @ and calling the sort function and then loading all the values again
+	ld r3, 12[sp]
+	ld r2, 8[sp]
+	ld r1, 4[sp]
+	ld r0, [sp]
+	add sp, sp, 20
+
+
+
+	.setValues:
+		sub r3, r3, 1            @ last index in array is N-1 (where N was stored in r3 initially)
+		mov r2, 0
+		add r4, r2, r3
+		div r4, r4, 2            @ finding the mid index (mid = (start + end)/2)
+		mul r4, r4, 4
+		b .check
+
+
+	.check:                          @ checking whether the pointers crossed or not
+		cmp r3, r2               @ r3 represents end index in array and r2 represents start index in array (start < end)
+		bgt .condition
+		beq .condition
+		b .noAns
+
+	.condition:
+		ld r5, [r4]
+		cmp r5, r0
+		bgt .set1
+		beq .ans
+		b .set2
+		b .noAns
+
+	.set1:                            @ if the value is greater than target then set pointers here
+		div r4, r4, 4
+		sub r4, r4, 1      
+		mov r3, r4
+		add r4, r2, r3
+		div r4, r4, 2
+		mul r4, r4, 4
+		b .check
+
+	.set2:                            @ if the value is smaller than target then set pointers here
+		div r4, r4, 4
+		add r4, r4, 1
+		mov r2, r4
+		add r4, r2, r3
+		div r4, r4, 2
+		mul r4, r4, 4
+		b .check
+		
+	.ans:                             @ condition get satisfied 
+		mov r1, 1
+		mov r10, r4
+		mov r11, r5
+		ret
+
+	.noAns:
+		mov r1, -1
+		mov r10, -1
+		mov r11, r5
+		ret
+
+
+
+.main:
+
+	@ Loading the values as an array into the registers
+
+	mov r0, 0    
+	mov r1, 12	@ replace 12 with the number to be sorted
+	st r1, 0[r0]
+	mov r1, 7	@ replace 7 with the number to be sorted
+	st r1, 4[r0]
+	mov r1, 11      @ replace 11 with the number to be sorted
+	st r1, 8[r0]
+	mov r1, 9       @ replace 9 with the number to be sorted
+	st r1, 12[r0]
+	mov r1, 3       @ replace 3 with the number to be sorted
+	st r1, 16[r0]
+	mov r1, 15      @ replace 15 with the number to be sorted
+	st r1, 20[r0]
+	mov r1, 2
+	st r1, 24[r0]
+	mov r1, 80
+	st r1, 28[r0]
+	mov r1, 22
+	st r1, 32[r0]
+	mov r1, 2
+	st r1, 36[r0]
+	
+	@ EXTEND ON SIMILAR LINES FOR MORE NUMBERS
+	
+	@ Store the Element to be searched in r0
+	mov r0, 2
+	
+	@Flag for storing the boolean result
+	mov r1, 0
+	
+	mov r2, 0       @ Starting address of the array
+	
+	@ Retreive the end address of the array
+	mov r3, 10	                      @ REPLACE 6 WITH N, where, N is the number of numbers being sorted
+	
+	@ ADD YOUR CODE HERE
+	
+	
+	sub sp, sp, 4
+	st ra, [sp]
+	call .binarysearch
+	ld ra, [sp]
+	add sp, sp, 4
+
+	@ ADD YOUR CODE HERE
+
+	@ Print statement for the result 
+	@ Boolean result is stored in r1
+	.print r1
+    
+    
